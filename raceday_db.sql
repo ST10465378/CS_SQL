@@ -129,3 +129,10 @@ INSERT INTO Categories (EventID, Name, DistanceKM, MaxParticipants, EntryFee) VA
 (2, '5km Night Run', 5.00,  300, 120.00),
 (3, '21km Half Marathon', 21.10, 100, 250.00);
 GO
+
+-- Sample enrolments
+INSERT INTO Enrolments (ParticipantID, CategoryID, PaymentStatus, BibNumber) VALUES
+(1, 1, 'paid',    101),
+(1, 3, 'pending', 102),
+(2, 2, 'paid',    201);
+GO
