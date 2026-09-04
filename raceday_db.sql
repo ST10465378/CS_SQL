@@ -52,3 +52,17 @@ CREATE TABLE Events (
     CONSTRAINT FK_Events_Organisers FOREIGN KEY (OrganiserID)    
     CONSTRAINT CK_Events_Status CHECK (Status IN ('draft', 'published', 'cancelled'))
 );
+
+-- create table Enrolments
+CREATE TABLE Categories (
+    CategoryID          INT IDENTITY(1,1)  NOT NULL,
+    EventID              INT                NOT NULL,
+    Name                 NVARCHAR(100)      NOT NULL,
+    DistanceKM           DECIMAL(5,2)       NOT NULL,
+    MaxParticipants       INT                NOT NULL DEFAULT 0,
+    EntryFee             DECIMAL(8,2)       NOT NULL DEFAULT 0,
+    CONSTRAINT PK_Categories PRIMARY KEY (CategoryID),
+    CONSTRAINT FK_Categories_Events FOREIGN KEY (EventID)   
+    CONSTRAINT CK_Categories_MaxParticipants CHECK (MaxParticipants >= 0),
+    CONSTRAINT CK_Categories_EntryFee CHECK (EntryFee >= 0)
+);
