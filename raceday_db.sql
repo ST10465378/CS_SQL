@@ -114,3 +114,10 @@ INSERT INTO Participants (UserID, DateOfBirth, EmergencyContact) VALUES
 (3, '1998-04-12', 'Nomsa Nkosi - 082 555 0303'),
 (4, '2001-09-27', 'Pieter van Wyk - 083 555 0404');
 GO
+
+-- Events: 3 events (minimum required)
+INSERT INTO Events (OrganiserID, Name, EventDate, Location, Description, Status) VALUES
+(1, 'Midrand Spring Run',        '2026-10-10', 'Midrand, Gauteng',       'Annual spring road race through Midrand.', 'published'),
+(1, 'DynaFrame Night Run',       '2026-11-14', 'Sandton, Gauteng',       'Evening fun run with glow-in-the-dark theme.', 'published'),
+(2, 'Braamfontein City Chase',   '2026-12-05', 'Braamfontein, Gauteng',  'Urban trail race through the city.', 'draft');
+GO
