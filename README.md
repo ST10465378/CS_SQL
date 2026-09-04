@@ -25,6 +25,7 @@ A GitHub Actions workflow validates the repository structure on every push (e.g.
 
 **Screenshot of a successful green build:**
 
+<img width="1100" height="480" alt="Screenshot 2026-09-04 165038" src="https://github.com/user-attachments/assets/36b99fee-f985-42fe-bfdb-9048f687a190" />
 
 
 ## YouTube Demonstration Video
