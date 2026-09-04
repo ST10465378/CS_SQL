@@ -53,7 +53,7 @@ CREATE TABLE Events (
     CONSTRAINT CK_Events_Status CHECK (Status IN ('draft', 'published', 'cancelled'))
 );
 
--- create table Enrolments
+-- create table Catergories
 CREATE TABLE Categories (
     CategoryID          INT IDENTITY(1,1)  NOT NULL,
     EventID              INT                NOT NULL,
@@ -65,4 +65,19 @@ CREATE TABLE Categories (
     CONSTRAINT FK_Categories_Events FOREIGN KEY (EventID)   
     CONSTRAINT CK_Categories_MaxParticipants CHECK (MaxParticipants >= 0),
     CONSTRAINT CK_Categories_EntryFee CHECK (EntryFee >= 0)
+);
+
+--create table Enrolments
+CREATE TABLE Enrolments (
+    EnrolmentID         INT IDENTITY(1,1)  NOT NULL,
+    ParticipantID        INT                NOT NULL,
+    CategoryID           INT                NOT NULL,
+    EnrolmentDate         DATETIME2          NOT NULL DEFAULT SYSDATETIME(),
+    PaymentStatus        NVARCHAR(20)       NOT NULL DEFAULT 'pending',
+    BibNumber            INT                NULL,
+    CONSTRAINT PK_Enrolments PRIMARY KEY (EnrolmentID),
+    CONSTRAINT FK_Enrolments_Participants FOREIGN KEY (ParticipantID   
+    CONSTRAINT FK_Enrolments_Categories FOREIGN KEY (CategoryID)
+    CONSTRAINT UQ_Enrolments_Participant_Category UNIQUE (ParticipantID, CategoryID),
+    CONSTRAINT CK_Enrolments_PaymentStatus CHECK (PaymentStatus IN ('pending', 'paid', 'refunded'))
 );
