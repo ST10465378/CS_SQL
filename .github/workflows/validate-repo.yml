@@ -23,7 +23,7 @@ jobs:
 
       - name: Check required files exist in /docs
         run: |
-          required_files=("docs/erd.png" "docs/RaceDay_Planning_Part1.docx" "docs/raceday.sql")
+          required_files=("docs/erd.png" "docs/RaceDay_Planning_Part1.docx" "docs/raceday_db.sql")
           for file in "${required_files[@]}"; do
             if [ ! -f "$file" ]; then
               echo "❌ Missing required file: $file"
