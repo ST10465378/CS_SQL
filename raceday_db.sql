@@ -90,6 +90,15 @@ CREATE TABLE Results (
     Position         INT                NULL,
     CONSTRAINT PK_Results PRIMARY KEY (ResultID),
     CONSTRAINT UQ_Results_EnrolmentID UNIQUE (EnrolmentID),
-    CONSTRAINT FK_Results_Enrolments FOREIGN KEY (EnrolmentID)
-        
+    CONSTRAINT FK_Results_Enrolments FOREIGN KEY (EnrolmentID)        
 );
+
+--insert seed data into the 7 tables
+
+-- Users
+INSERT INTO Users (FullName, Email, PasswordHash, Role) VALUES
+('Thabo Mokoena',   'thabo.mokoena@raceday.co.za',   'HASH_PW_1', 'Organiser'),
+('Lindiwe Dube',     'lindiwe.dube@raceday.co.za',    'HASH_PW_2', 'Organiser'),
+('Sipho Nkosi',      'sipho.nkosi@example.com',       'HASH_PW_3', 'Participant'),
+('Amanda van Wyk',   'amanda.vanwyk@example.com',     'HASH_PW_4', 'Participant');
+GO
