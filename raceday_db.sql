@@ -1,6 +1,8 @@
 --create raceday database
 CREATE DATABASE RaceDay;
+GO
 USE RaceDay;
+GO
 
 --create tables using the 7 entities from ERD
 
@@ -16,6 +18,7 @@ CREATE TABLE Users (
     CONSTRAINT UQ_Users_Email UNIQUE (Email),
     CONSTRAINT CK_Users_Role CHECK (Role IN ('Organiser', 'Participant'))
 );
+GO
 
 --create table Organisers
 CREATE TABLE Organisers (
@@ -25,8 +28,9 @@ CREATE TABLE Organisers (
     ContactPhone         NVARCHAR(30)       NULL,
     CONSTRAINT PK_Organisers PRIMARY KEY (OrganiserID),
     CONSTRAINT UQ_Organisers_UserID UNIQUE (UserID),
-    CONSTRAINT FK_Organisers_Users FOREIGN KEY (UserID)
+    CONSTRAINT FK_Organisers_Users FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+GO
 
 --create table Participants
 CREATE TABLE Participants (
@@ -36,8 +40,9 @@ CREATE TABLE Participants (
     EmergencyContact     NVARCHAR(100)      NULL,
     CONSTRAINT PK_Participants PRIMARY KEY (ParticipantID),
     CONSTRAINT UQ_Participants_UserID UNIQUE (UserID),
-    CONSTRAINT FK_Participants_Users FOREIGN KEY (UserID)     
+    CONSTRAINT FK_Participants_Users FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+GO
 
 --create table Events
 CREATE TABLE Events (
@@ -49,11 +54,12 @@ CREATE TABLE Events (
     Description      NVARCHAR(1000)     NULL,
     Status           NVARCHAR(20)       NOT NULL DEFAULT 'draft',
     CONSTRAINT PK_Events PRIMARY KEY (EventID),
-    CONSTRAINT FK_Events_Organisers FOREIGN KEY (OrganiserID)    
+    CONSTRAINT FK_Events_Organisers FOREIGN KEY (OrganiserID) REFERENCES Organisers(OrganiserID),
     CONSTRAINT CK_Events_Status CHECK (Status IN ('draft', 'published', 'cancelled'))
 );
+GO
 
--- create table Catergories
+-- create table Categories
 CREATE TABLE Categories (
     CategoryID          INT IDENTITY(1,1)  NOT NULL,
     EventID              INT                NOT NULL,
@@ -62,10 +68,11 @@ CREATE TABLE Categories (
     MaxParticipants       INT                NOT NULL DEFAULT 0,
     EntryFee             DECIMAL(8,2)       NOT NULL DEFAULT 0,
     CONSTRAINT PK_Categories PRIMARY KEY (CategoryID),
-    CONSTRAINT FK_Categories_Events FOREIGN KEY (EventID)   
+    CONSTRAINT FK_Categories_Events FOREIGN KEY (EventID) REFERENCES Events(EventID),
     CONSTRAINT CK_Categories_MaxParticipants CHECK (MaxParticipants >= 0),
     CONSTRAINT CK_Categories_EntryFee CHECK (EntryFee >= 0)
 );
+GO
 
 --create table Enrolments
 CREATE TABLE Enrolments (
@@ -76,11 +83,12 @@ CREATE TABLE Enrolments (
     PaymentStatus        NVARCHAR(20)       NOT NULL DEFAULT 'pending',
     BibNumber            INT                NULL,
     CONSTRAINT PK_Enrolments PRIMARY KEY (EnrolmentID),
-    CONSTRAINT FK_Enrolments_Participants FOREIGN KEY (ParticipantID   
-    CONSTRAINT FK_Enrolments_Categories FOREIGN KEY (CategoryID)
+    CONSTRAINT FK_Enrolments_Participants FOREIGN KEY (ParticipantID) REFERENCES Participants(ParticipantID),
+    CONSTRAINT FK_Enrolments_Categories FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
     CONSTRAINT UQ_Enrolments_Participant_Category UNIQUE (ParticipantID, CategoryID),
     CONSTRAINT CK_Enrolments_PaymentStatus CHECK (PaymentStatus IN ('pending', 'paid', 'refunded'))
 );
+GO
 
 --create table Results
 CREATE TABLE Results (
@@ -90,8 +98,9 @@ CREATE TABLE Results (
     Position         INT                NULL,
     CONSTRAINT PK_Results PRIMARY KEY (ResultID),
     CONSTRAINT UQ_Results_EnrolmentID UNIQUE (EnrolmentID),
-    CONSTRAINT FK_Results_Enrolments FOREIGN KEY (EnrolmentID)        
+    CONSTRAINT FK_Results_Enrolments FOREIGN KEY (EnrolmentID) REFERENCES Enrolments(EnrolmentID)
 );
+GO
 
 --insert seed data into the 7 tables
 
