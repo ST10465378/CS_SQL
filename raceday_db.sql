@@ -143,6 +143,9 @@ INSERT INTO Results (EnrolmentID, FinishTime, Position) VALUES
 (3, '00:52:10', 8);
 GO
 
+PRINT 'RaceDay database schema created and seeded successfully.';
+GO
+
 
 
 
