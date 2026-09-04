@@ -28,3 +28,13 @@ CREATE TABLE Organisers (
     CONSTRAINT FK_Organisers_Users FOREIGN KEY (UserID)
 );
 
+--create table Participants
+CREATE TABLE Participants (
+    ParticipantID       INT IDENTITY(1,1)  NOT NULL,
+    UserID               INT                NOT NULL,
+    DateOfBirth          DATE               NOT NULL,
+    EmergencyContact     NVARCHAR(100)      NULL,
+    CONSTRAINT PK_Participants PRIMARY KEY (ParticipantID),
+    CONSTRAINT UQ_Participants_UserID UNIQUE (UserID),
+    CONSTRAINT FK_Participants_Users FOREIGN KEY (UserID)      
+);
