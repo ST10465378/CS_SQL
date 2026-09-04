@@ -109,3 +109,8 @@ INSERT INTO Organisers (UserID, OrganisationName, ContactPhone) VALUES
 (2, 'Braamfontein Athletics',  '011 555 0202');
 GO
 
+-- Participants
+INSERT INTO Participants (UserID, DateOfBirth, EmergencyContact) VALUES
+(3, '1998-04-12', 'Nomsa Nkosi - 082 555 0303'),
+(4, '2001-09-27', 'Pieter van Wyk - 083 555 0404');
+GO
