@@ -81,3 +81,15 @@ CREATE TABLE Enrolments (
     CONSTRAINT UQ_Enrolments_Participant_Category UNIQUE (ParticipantID, CategoryID),
     CONSTRAINT CK_Enrolments_PaymentStatus CHECK (PaymentStatus IN ('pending', 'paid', 'refunded'))
 );
+
+--create table Results
+CREATE TABLE Results (
+    ResultID        INT IDENTITY(1,1)  NOT NULL,
+    EnrolmentID      INT                NOT NULL,
+    FinishTime       TIME(0)            NOT NULL,
+    Position         INT                NULL,
+    CONSTRAINT PK_Results PRIMARY KEY (ResultID),
+    CONSTRAINT UQ_Results_EnrolmentID UNIQUE (EnrolmentID),
+    CONSTRAINT FK_Results_Enrolments FOREIGN KEY (EnrolmentID)
+        
+);
