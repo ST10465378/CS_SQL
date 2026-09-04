@@ -121,3 +121,11 @@ INSERT INTO Events (OrganiserID, Name, EventDate, Location, Description, Status)
 (1, 'DynaFrame Night Run',       '2026-11-14', 'Sandton, Gauteng',       'Evening fun run with glow-in-the-dark theme.', 'published'),
 (2, 'Braamfontein City Chase',   '2026-12-05', 'Braamfontein, Gauteng',  'Urban trail race through the city.', 'draft');
 GO
+
+-- Categories: at least one per event
+INSERT INTO Categories (EventID, Name, DistanceKM, MaxParticipants, EntryFee) VALUES
+(1, '5km Fun Run',   5.00,  200, 100.00),
+(1, '10km Race',     10.00, 150, 150.00),
+(2, '5km Night Run', 5.00,  300, 120.00),
+(3, '21km Half Marathon', 21.10, 100, 250.00);
+GO
