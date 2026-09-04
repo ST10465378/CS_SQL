@@ -136,3 +136,15 @@ INSERT INTO Enrolments (ParticipantID, CategoryID, PaymentStatus, BibNumber) VAL
 (1, 3, 'pending', 102),
 (2, 2, 'paid',    201);
 GO
+
+-- Sample results (only for enrolments that have completed a race)
+INSERT INTO Results (EnrolmentID, FinishTime, Position) VALUES
+(1, '00:28:45', 12),
+(3, '00:52:10', 8);
+GO
+
+
+
+
+
+
