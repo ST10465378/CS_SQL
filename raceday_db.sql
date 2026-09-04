@@ -102,3 +102,10 @@ INSERT INTO Users (FullName, Email, PasswordHash, Role) VALUES
 ('Sipho Nkosi',      'sipho.nkosi@example.com',       'HASH_PW_3', 'Participant'),
 ('Amanda van Wyk',   'amanda.vanwyk@example.com',     'HASH_PW_4', 'Participant');
 GO
+
+-- Organisers
+INSERT INTO Organisers (UserID, OrganisationName, ContactPhone) VALUES
+(1, 'Midrand Runners Club',    '011 555 0101'),
+(2, 'Braamfontein Athletics',  '011 555 0202');
+GO
+
