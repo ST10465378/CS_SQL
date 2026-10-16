@@ -18,7 +18,7 @@ jobs:
           for f in \
             README.md \
             docs/erd.png \
-            docs/raceday.sql \
+            docs/raceday_db.sql \
             docs/RaceDay_Planning_Part1.docx \
             Part2-API/RaceDay.sln \
             Part2-API/src/RaceDay.Api/RaceDay.Api.csproj \
