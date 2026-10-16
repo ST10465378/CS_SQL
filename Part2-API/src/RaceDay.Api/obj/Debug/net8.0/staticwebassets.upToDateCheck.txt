@@ -1,2 +1,0 @@
-wwwroot\swagger\custom-form.js
-wwwroot\swagger\index.html
