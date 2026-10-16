@@ -17,7 +17,7 @@ jobs:
           miss() { echo "MISSING  $1"; missing=1; }
 
           echo "== Required files =="
-          for f in README.md docs/erd.png docs/raceday.sql; do
+          for f in README.md docs/erd.png docs/raceday_db.sql; do
             if [ -f "$f" ]; then ok "$f"; else miss "$f"; fi
           done
           if ls docs/*.docx >/dev/null 2>&1; then ok "docs/*.docx (Part 1 planning document)"; else miss "docs/*.docx (Part 1 planning document)"; fi
