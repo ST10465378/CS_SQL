@@ -44,7 +44,18 @@ if (app.Configuration.GetValue("Database:AutoInitialise", true))
 }
 
 app.UseSwagger();
-app.UseSwaggerUI(o => o.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1"));
+
+app.UseStaticFiles();   // serves /swagger/custom-form.js
+
+app.UseSwaggerUI(o =>
+{
+    o.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1");
+
+    // Serve our custom index.html from wwwroot instead of Swashbuckle's default
+    o.IndexStream = () =>
+        System.IO.File.OpenRead(
+            System.IO.Path.Combine(app.Environment.WebRootPath, "swagger", "index.html"));
+});
 
 app.UseHttpsRedirection();
 app.UseSession();
