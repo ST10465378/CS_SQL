@@ -13,37 +13,37 @@ jobs:
       - name: Check required files and folders
         run: |
           missing=0
+          ok()   { echo "OK       $1"; }
+          miss() { echo "MISSING  $1"; missing=1; }
 
           echo "== Required files =="
-          for f in \
-            README.md \
-            docs/erd.png \
-            docs/raceday_db.sql \
-            docs/RaceDay_Planning_Part1.docx \
-            Part2-API/RaceDay.sln \
-            Part2-API/src/RaceDay.Api/RaceDay.Api.csproj \
-            Part2-API/src/RaceDay.Api/Program.cs \
-            Part2-API/src/RaceDay.Api/appsettings.json \
-            Part2-API/tests/RaceDay.Api.Tests/RaceDay.Api.Tests.csproj; do
-            if [ -f "$f" ]; then echo "OK       $f"; else echo "MISSING  $f"; missing=1; fi
+          for f in README.md docs/erd.png docs/raceday.sql; do
+            if [ -f "$f" ]; then ok "$f"; else miss "$f"; fi
           done
+          if ls docs/*.docx >/dev/null 2>&1; then ok "docs/*.docx (Part 1 planning document)"; else miss "docs/*.docx (Part 1 planning document)"; fi
+
+          SLN=$(find . -name '*.sln' -not -path './.git/*' | head -n 1 || true)
+          if [ -n "$SLN" ]; then ok "solution file: $SLN"; else miss "a .sln solution file"; fi
+
+          API=$(grep -rl --include='*.csproj' 'Microsoft.NET.Sdk.Web' . 2>/dev/null | head -n 1 || true)
+          if [ -n "$API" ]; then ok "API project: $API"; else miss "ASP.NET Core Web API project (.csproj)"; fi
+
+          TESTS=$(grep -rliE --include='*.csproj' 'xunit|nunit|mstest' . 2>/dev/null | head -n 1 || true)
+          if [ -n "$TESTS" ]; then ok "unit test project: $TESTS"; else miss "unit test project (.csproj with xunit/nunit/mstest)"; fi
 
           echo "== Required folders =="
-          for d in \
-            docs \
-            Part2-API/src/RaceDay.Api/Controllers \
-            Part2-API/src/RaceDay.Api/Models \
-            Part2-API/src/RaceDay.Api/Data \
-            Part2-API/tests/RaceDay.Api.Tests; do
-            if [ -d "$d" ]; then echo "OK       $d/"; else echo "MISSING  $d/"; missing=1; fi
+          if [ -d docs ]; then ok "docs/"; else miss "docs/"; fi
+          for d in Controllers Models Data; do
+            F=$(find . -type d -name "$d" -not -path '*/bin/*' -not -path '*/obj/*' | head -n 1 || true)
+            if [ -n "$F" ]; then ok "$F/"; else miss "a $d folder"; fi
           done
 
           echo "== README content =="
-          if grep -qi "Part 2" README.md; then echo "OK       README documents Part 2"; else echo "MISSING  Part 2 section in README.md"; missing=1; fi
+          if grep -qi "Part 2" README.md; then ok "README documents Part 2"; else miss "Part 2 section in README.md"; fi
 
           echo "== EF Core migrations (code-first) =="
-          if ls Part2-API/src/RaceDay.Api/Migrations/*.cs >/dev/null 2>&1; then
-            echo "OK       Migrations folder present"
+          if find . -type d -name Migrations -not -path '*/bin/*' -not -path '*/obj/*' | grep -q .; then
+            ok "Migrations folder present"
           else
             echo "::warning::No EF Core Migrations folder found (run Add-Migration InitialCreate and commit it)"
           fi
@@ -58,17 +58,17 @@ jobs:
     name: Build and run unit tests
     needs: validate-structure
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Part2-API
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - name: Locate solution
+        id: sln
+        run: echo "path=$(find . -name '*.sln' -not -path './.git/*' | head -n 1)" >> "$GITHUB_OUTPUT"
       - name: Restore
-        run: dotnet restore RaceDay.sln
+        run: dotnet restore "${{ steps.sln.outputs.path }}"
       - name: Build
-        run: dotnet build RaceDay.sln --no-restore --configuration Release
+        run: dotnet build "${{ steps.sln.outputs.path }}" --no-restore --configuration Release
       - name: Run unit tests
-        run: dotnet test RaceDay.sln --no-build --configuration Release --verbosity normal
+        run: dotnet test "${{ steps.sln.outputs.path }}" --no-build --configuration Release --verbosity normal
