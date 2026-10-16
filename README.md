@@ -105,9 +105,9 @@ The workflow `.github/workflows/part2-api-ci.yml` restores, builds and runs all 
 
 **Screenshot of a successful green build (Part 2):**
 
-[Part 2 green build](docs/part2-ci-success.png)
+[Part 2 green build](docs/ci%20workflow.png)
 
 ## Part 2 video demonstration
 
 <!-- TODO: replace with your unlisted YouTube link covering all endpoints, authentication, Swagger, unit tests and code explanation -->
-[Watch the Part 2 demonstration video](https://youtu.be/REPLACE_WITH_YOUR_VIDEO)
+[Watch the Part 2 demonstration video](https://youtu.be/Trwgtz7dKxw)
