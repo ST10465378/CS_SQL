@@ -110,4 +110,4 @@ The workflow `.github/workflows/part2-api-ci.yml` restores, builds and runs all 
 ## Part 2 video demonstration
 
 <!-- TODO: replace with your unlisted YouTube link covering all endpoints, authentication, Swagger, unit tests and code explanation -->
-[Watch the Part 2 demonstration video](https://youtu.be/REPLACE_WITH_YOUR_VIDEO_ID)
+[Watch the Part 2 demonstration video](https://youtu.be/REPLACE_WITH_YOUR_VIDEO)
