@@ -1,0 +1,6 @@
+using Microsoft.AspNetCore.Mvc;using RaceDay.Web.Models;using RaceDay.Web.Services;
+namespace RaceDay.Web.Controllers;
+public class ProfileController(RaceDayClient api):BaseController {
+ public async Task<IActionResult> Index(){if(Role==null)return Denied();var (user,error)=await api.Get<UserInfo>(HttpContext,"api/users/me");if(user==null)return Feedback(error??"Please sign in","Account","Login");ViewBag.Picture=user.ProfileImageUrl;ViewBag.Email=user.Email;return View(new ProfileForm{FullName=user.FullName,OrganisationName=user.OrganisationName,ContactPhone=user.ContactPhone,DateOfBirth=user.DateOfBirth,EmergencyContact=user.EmergencyContact});}
+ [HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult> Save(ProfileForm form){if(Role==null)return Denied();if(!ModelState.IsValid)return View("Index",form);var (user,error)=await api.Put<UserInfo>(HttpContext,"api/users/me",new{form.FullName,form.OrganisationName,form.ContactPhone,DateOfBirth=string.IsNullOrWhiteSpace(form.DateOfBirth)?null:form.DateOfBirth,form.EmergencyContact});if(error==null&&form.Picture!=null){var (_,uploadError)=await api.Upload<object>(HttpContext,"api/users/me/picture",form.Picture);error=uploadError;}if(error==null)HttpContext.Session.SetString("Name",form.FullName);return Feedback(error,"Profile","Index");}
+}
