@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.vs/
+**/secrets.json
+**/.env
+**/.env.*
+!**/.env.example
+.git/
