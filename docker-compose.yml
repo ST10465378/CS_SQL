@@ -1,20 +1,26 @@
+# Run from the repository root: docker compose up -d --build
+# Docker runs the API, MVC and SQL Server; Azure Blob Storage remains external.
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in your local .env file}
     volumes:
       - sql-data:/var/opt/mssql
-    ports:
-      - "1433:1433"
+    # Keep SQL Server private to the Compose network; the MVC app never accesses it.
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/1433' || exit 1"]
       interval: 10s
-      retries: 20
-      start_period: 30s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+
   api:
-    build: ./Part2-API
+    build:
+      context: ./Part2-API
+      dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -26,14 +32,23 @@ services:
         condition: service_healthy
     ports:
       - "5080:8080"
+    # Database TCP readiness may precede SQL accepting authenticated queries.
+    # Restart the API if its one-time DbInitializer fails during SQL's cold start.
+    restart: on-failure:5
+
   web:
-    build: ./Part3-MVC
+    build:
+      context: ./Part3-MVC
+      dockerfile: Dockerfile
     environment:
+      ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ApiBaseUrl: http://api:8080/
     depends_on:
       - api
     ports:
       - "5180:8080"
+    restart: on-failure:5
+
 volumes:
   sql-data:
