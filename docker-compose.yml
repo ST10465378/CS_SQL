@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+    volumes:
+      - sql-data:/var/opt/mssql
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/1433' || exit 1"]
+      interval: 10s
+      retries: 20
+      start_period: 30s
+  api:
+    build: ./Part2-API
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__RaceDayDb: "Server=db,1433;Database=RaceDayDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true;"
+      AzureBlob__ConnectionString: ${AZURE_BLOB_CONNECTION_STRING:-}
+      Registration__OrganiserCode: ${ORGANISER_CODE:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5080:8080"
+  web:
+    build: ./Part3-MVC
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ApiBaseUrl: http://api:8080/
+    depends_on:
+      - api
+    ports:
+      - "5180:8080"
+volumes:
+  sql-data:
