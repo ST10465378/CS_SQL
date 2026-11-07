@@ -1,6 +1,6 @@
 RaceDay
 
-RaceDay is a race-event management system that lets running/athletics event organisers publish races and manage race-day logistics, while participants can browse events, enrol in categories, and view their results. The system is built around a relational database (SQL Server) and a RESTful API, planned in full before any application code was written (see `/docs`), and will be implemented as a **.NET C# application**.
+RaceDay is a race-event management system that lets running/athletics event organisers publish races and manage race-day logistics, while participants can browse events, enrol in categories, and view their results. The system is built around a relational database (SQL Server) and a RESTful API, planned in full before any application code was written (see `/docs`), and will be implemented as a The system is implemented using ASP.NET Core 8, C#, Entity Framework Core, SQL Server, an MVC frontend, Azure Blob Storage, and Docker containerisation.
 
 Brief description of the system
 
@@ -111,3 +111,265 @@ The workflow `.github/workflows/part2-api-ci.yml` restores, builds and runs all 
 
 <!-- TODO: replace with your unlisted YouTube link covering all endpoints, authentication, Swagger, unit tests and code explanation -->
 [Watch the Part 2 demonstration video](https://youtu.be/Trwgtz7dKxw)
+
+
+# Part 3 – ASP.NET Core MVC, Azure Blob Storage and Docker
+
+RaceDay Part 3 completes the race-event management platform by integrating an **ASP.NET Core 8 MVC frontend** with the existing Part 2 RESTful API, implementing **Azure Blob Storage** for image uploads, and introducing **Docker containerisation** for consistent application deployment.
+
+The application provides separate role-based interfaces for Organisers and Participants, with a responsive sporting-themed design.
+
+## Part 3 Architecture
+
+The application follows a layered architecture:
+
+```text
+ASP.NET Core MVC (RaceDay.Web)
+            |
+            | HttpClient
+            v
+ASP.NET Core Web API (RaceDay.Api)
+            |
+            +---- SQL Server (Application Data)
+            |
+            +---- Azure Blob Storage (Images)
+```
+
+The MVC application communicates exclusively with the API through `HttpClient`. It does not access SQL Server or Azure Blob Storage directly.
+
+The REST API handles authentication, validation, database operations, business rules and image uploads.
+
+## Part 3 Project Structure
+
+```text
+Part2-API/
+  src/RaceDay.Api/
+    Controllers/
+    Services/
+      BlobImageService.cs
+    Data/
+    Models/
+    Dtos/
+  tests/
+  Dockerfile
+
+Part3-MVC/
+  RaceDay.Web/
+    Controllers/
+    Models/
+    Services/
+      RaceDayClient.cs
+    Views/
+    wwwroot/
+    Program.cs
+    appsettings.json
+  Dockerfile
+
+.github/
+  workflows/
+    part3-build.yml
+
+scripts/
+  ci-docker-smoke.sh
+
+docker-compose.yml
+.env.example
+DOCKER-SUBMISSION.md
+```
+
+## ASP.NET Core MVC and HttpClient Integration
+
+The `RaceDay.Web` project consumes the existing Part 2 REST API using `HttpClient`.
+
+The MVC frontend handles presentation and user interaction, while the API remains responsible for data operations.
+
+Features include:
+
+- User registration and login through the API.
+- Session-based authentication and role-aware navigation.
+- Public event browsing and filtering.
+- Organiser event management.
+- Event category creation and management.
+- Participant enrolments.
+- Race result capture and display.
+- Participant profile management.
+
+The application separates Organiser and Participant functionality using role-based access controls.
+
+## Organiser Interface
+
+Organisers can:
+
+- Access a dashboard showing their events.
+- Create, edit and delete or cancel events.
+- Upload event banner images.
+- Manage event categories.
+- View registered participants and enrolment statuses.
+- Capture and publish race results, including finish times and positions.
+
+Organisers can only manage events and related records that belong to their accounts.
+
+## Participant Interface
+
+Participants can:
+
+- Browse and filter published events.
+- View event details and available categories.
+- Enrol in race categories.
+- View their existing enrolments and enrolment statuses.
+- View their race results and finishing positions.
+- View and update their profile information.
+- Upload a profile picture.
+
+## Azure Blob Storage Integration
+
+Azure Blob Storage is integrated into the existing REST API to manage image uploads.
+
+**Azure configuration:**
+
+| Configuration | Value |
+|---|---|
+| Storage account | `racedaypoe3` |
+| Resource group | `RaceDay-UAE-RG` |
+| Azure region | UAE North |
+| Storage tier | Standard / Hot |
+| Redundancy | Locally-redundant storage (LRS) |
+| Authentication | Storage connection string configured securely |
+| Container access | Private |
+
+The application uses two containers:
+
+- `event-banners` – stores uploaded event banner images.
+- `profile-pictures` – stores participant profile pictures.
+
+### Image upload process
+
+1. The user selects an image in the MVC application.
+2. MVC sends the file to the REST API.
+3. The API validates the image format and size.
+4. The API uploads the image using the `Azure.Storage.Blobs` NuGet package.
+5. The permanent blob URL is saved in SQL Server.
+6. The API generates temporary read-only SAS URLs when images need to be displayed.
+
+Supported image formats include JPG, PNG and WEBP, with a maximum upload size of 5 MB.
+
+**Security:** Azure credentials are stored using .NET User Secrets during local development and must never be committed to GitHub. Uploaded images remain in private Blob containers.
+
+## Docker Containerisation
+
+RaceDay supports containerisation using Docker and Docker Compose.
+
+The Docker Compose configuration defines three services:
+
+| Service | Purpose | Local port |
+|---|---|---|
+| `db` | SQL Server 2022 database | Internal database service |
+| `api` | ASP.NET Core REST API | 5080 |
+| `web` | ASP.NET Core MVC frontend | 5180 |
+
+Docker networking allows the MVC application to communicate with the API using the internal address:
+
+`http://api:8080/`
+
+The API communicates with SQL Server using the Docker service hostname `db`.
+
+### Running with Docker
+
+**Requirements:**
+
+- Docker Engine with Docker Compose support.
+- Sufficient resources for SQL Server and the .NET applications.
+- Valid environment configuration.
+
+1. Clone or extract the repository.
+2. Copy `.env.example` to `.env`.
+3. Set a strong `MSSQL_SA_PASSWORD`.
+4. Configure `AZURE_BLOB_CONNECTION_STRING` if Azure uploads are required.
+5. Open a terminal in the repository root.
+6. Run:
+
+```bash
+docker compose up --build -d
+```
+
+Once the services are ready, access:
+
+- MVC application: `http://localhost:5180`
+- REST API: `http://localhost:5080`
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+See `DOCKER-SUBMISSION.md` for additional setup instructions.
+
+**Important:** Real Azure credentials are not included in the repository. They must be configured securely by whoever runs the application.
+
+## GitHub Actions – Part 3 CI/CD
+
+The Part 3 workflow extends the existing automated CI pipeline.
+
+The workflow performs:
+
+1. Repository checkout and .NET 8 setup.
+2. Dependency restoration.
+3. API build and automated unit tests.
+4. MVC project build.
+5. Docker image builds for the API and MVC.
+6. Docker Compose startup.
+7. Automated smoke testing of the containerised application.
+
+**CI/CD result:** The latest verified GitHub Actions workflow passed, including the Docker Compose smoke test.
+
+### Part 3 Successful Workflow
+
+![RaceDay Part 3 successful GitHub Actions workflow](docs/images/part3-ci-success.png)
+
+The screenshot demonstrates the successful automated build and testing pipeline.
+
+## Testing and Verification
+
+The following functionality has been tested during development:
+
+| Feature | Result |
+|---|---|
+| API Swagger interface | Passed |
+| MVC frontend launch | Passed |
+| MVC to API HttpClient communication | Passed |
+| Participant registration and login | Passed |
+| Event browsing and enrolment | Passed |
+| Participant event and profile pages | Passed |
+| Azure Blob image uploads | Passed |
+| Private Azure image display | Passed |
+| GitHub Actions builds and tests | Passed |
+| Docker Compose smoke testing | Passed |
+
+The application was tested locally in Visual Studio, while Docker image builds and container smoke tests were executed through GitHub Actions.
+
+## Part 3 Demonstration Video
+
+The final demonstration covers:
+
+- The RaceDay application architecture.
+- The ASP.NET Core MVC frontend.
+- API integration using `HttpClient`.
+- Organiser and Participant functionality.
+- Event creation, categories, enrolments and results.
+- Azure Blob Storage and image uploads.
+- Docker and Docker Compose configuration.
+- GitHub Actions CI/CD workflow.
+- Explanation of the project structure and implementation.
+
+**YouTube demonstration:**
+
+[Watch RaceDay Part 3 Demonstration](PASTE_PART3_YOUTUBE_LINK_HERE)
+
+*The video is uploaded as an unlisted YouTube video for assessment.*
+
+## Submission
+
+The final RaceDay submission contains the complete Part 1 planning documentation, Part 2 REST API, Part 3 MVC frontend, Docker configuration, GitHub Actions workflows, and supporting documentation.
+
+The repository contains all source code required to rebuild the application. Secrets and environment-specific credentials are excluded for security.
