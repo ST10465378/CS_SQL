@@ -9,6 +9,8 @@ RUN dotnet restore src/RaceDay.Api/RaceDay.Api.csproj
 
 COPY src/RaceDay.Api/ src/RaceDay.Api/
 
+RUN dotnet restore src/RaceDay.Api/RaceDay.Api.csproj
+
 RUN dotnet publish src/RaceDay.Api/RaceDay.Api.csproj \
     -c Release \
     -o /app/publish \
@@ -19,8 +21,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
 COPY --from=build /app/publish .
-
-USER $APP_UID
 
 ENV ASPNETCORE_HTTP_PORTS=8080
 
