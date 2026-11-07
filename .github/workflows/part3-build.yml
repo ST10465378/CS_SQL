@@ -1,0 +1,58 @@
+name: Part 3 - API, MVC and Docker CI
+
+on:
+  push:
+    branches: [main, part3]
+  pull_request:
+    branches: [main, part3]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore API and tests
+        run: dotnet restore Part2-API/RaceDay.sln
+
+      - name: Build API and tests
+        run: dotnet build Part2-API/RaceDay.sln -c Release --no-restore
+
+      - name: Run API unit tests
+        run: dotnet test Part2-API/RaceDay.sln -c Release --no-build
+
+      - name: Build MVC
+        run: dotnet build Part3-MVC/RaceDay.Web/RaceDay.Web.csproj -c Release
+
+      - name: Set temporary SQL password for CI
+        shell: bash
+        run: |
+          # Random for each run; deliberately not a real Azure or SQL credential.
+          echo "MSSQL_SA_PASSWORD=CI_RaceDay!$(openssl rand -hex 16)Aa9" >> "$GITHUB_ENV"
+
+      - name: Build Docker Compose images
+        run: docker compose build api web
+
+      - name: Start Docker stack
+        run: docker compose up -d --no-build
+
+      - name: Verify API, MVC and SQL end to end
+        timeout-minutes: 8
+        run: bash scripts/ci-docker-smoke.sh
+
+      - name: Show diagnostics if any step fails
+        if: failure()
+        run: |
+          docker compose ps || true
+          docker compose logs --no-color --tail 150 db api web || true
+
+      - name: Stop and remove CI containers
+        if: always()
+        run: docker compose down -v --remove-orphans || true
