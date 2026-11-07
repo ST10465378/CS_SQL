@@ -1,0 +1,2 @@
+@model List<(EnrolmentInfo,ResultInfo?)>
+@{ViewData["Title"]="My results";}<p class="eyebrow">YOUR RACE HISTORY</p><h1>Every finish <em>counts.</em></h1><div class="table-responsive"><table class="table table-dark"><thead><tr><th>Event</th><th>Date</th><th>Category</th><th>Finish time</th><th>Position</th></tr></thead><tbody>@foreach(var entry in Model){var e=entry.Item1;var r=entry.Item2;<tr><td>@e.EventName</td><td>@e.EventDate</td><td>@e.CategoryName</td><td>@(r?.FinishTime??"Awaiting result")</td><td>@(r?.Position?.ToString()??"—")</td></tr>}</tbody></table></div>
