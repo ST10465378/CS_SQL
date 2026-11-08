@@ -51,10 +51,6 @@ app.UseSwaggerUI(o =>
 {
     o.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1");
 
-    // Serve our custom index.html from wwwroot instead of Swashbuckle's default
-    o.IndexStream = () =>
-        System.IO.File.OpenRead(
-            System.IO.Path.Combine(app.Environment.WebRootPath, "swagger", "index.html"));
 });
 
 app.UseHttpsRedirection();

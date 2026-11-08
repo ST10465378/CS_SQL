@@ -364,7 +364,7 @@ The final demonstration covers:
 
 **YouTube demonstration:**
 
-[Watch RaceDay Part 3 Demonstration](PASTE_PART3_YOUTUBE_LINK_HERE)
+[Watch RaceDay Part 3 Demonstration](https://youtu.be/9yNKtCHBIQ0)
 
 *The video is uploaded as an unlisted YouTube video for assessment.*
 
