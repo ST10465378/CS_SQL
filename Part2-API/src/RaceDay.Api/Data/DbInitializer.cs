@@ -12,6 +12,12 @@ public static class DbInitializer
         if (db.Database.GetMigrations().Any()) db.Database.Migrate();
         else db.Database.EnsureCreated();
 
+        // EnsureCreated does not add columns to existing databases. These changes are additive.
+        db.Database.ExecuteSqlRaw(@"IF COL_LENGTH('dbo.Events', 'BannerImageUrl') IS NULL
+            ALTER TABLE dbo.Events ADD BannerImageUrl nvarchar(2048) NULL;");
+        db.Database.ExecuteSqlRaw(@"IF COL_LENGTH('dbo.Users', 'ProfileImageUrl') IS NULL
+            ALTER TABLE dbo.Users ADD ProfileImageUrl nvarchar(2048) NULL;");
+
         if (db.Users.Any()) return;
 
         var pw = PasswordService.Hash("Password123!");

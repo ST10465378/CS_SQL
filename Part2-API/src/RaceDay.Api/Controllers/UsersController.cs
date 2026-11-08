@@ -4,14 +4,21 @@ using RaceDay.Api.Data;
 using RaceDay.Api.Dtos;
 using RaceDay.Api.Models;
 using RaceDay.Api.Security;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
 [Route("api/users/me")]
 [Tags("User Profile")]
 [SessionAuthorize]
-public class UsersController(RaceDayDbContext db) : ApiControllerBase
+public class UsersController(RaceDayDbContext db, BlobImageService blobs, IConfiguration config) : ApiControllerBase
 {
+    private string PictureContainer => config["AzureBlob:ProfilePicturesContainer"] ?? "profile-pictures";
+    private UserResponse SignPicture(UserResponse response) => response with
+    {
+        ProfileImageUrl = blobs.GetReadUrl(response.ProfileImageUrl, PictureContainer)
+    };
+
     private Task<User?> LoadUser() => db.Users.Include(u => u.Organiser).Include(u => u.Participant)
         .FirstOrDefaultAsync(u => u.UserId == CurrentUserId);
 
@@ -25,7 +32,24 @@ public class UsersController(RaceDayDbContext db) : ApiControllerBase
     {
         var user = await LoadUser();
         if (user is null) { HttpContext.Session.Clear(); return Fail(401, "Session is no longer valid."); }
-        return Ok(user.ToResponse());
+        return Ok(SignPicture(user.ToResponse()));
+    }
+
+    /// <summary>Upload a profile picture (JPG, PNG or WEBP, up to 5 MB).</summary>
+    [HttpPost("picture")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadPicture(IFormFile file, CancellationToken ct)
+    {
+        var user = await LoadUser();
+        if (user is null) return Fail(401, "Session is no longer valid.");
+        if (file is null) return Fail(400, "Please select an image.");
+        try
+        {
+            user.ProfileImageUrl = await blobs.Upload(file, PictureContainer, ct);
+            await db.SaveChangesAsync(ct);
+            return Ok(SignPicture(user.ToResponse()));
+        }
+        catch (ArgumentException ex) { return Fail(400, ex.Message); }
     }
 
     /// <summary>Update the logged-in user's own profile.</summary>
@@ -60,7 +84,7 @@ public class UsersController(RaceDayDbContext db) : ApiControllerBase
         }
 
         await db.SaveChangesAsync();
-        return Ok(user.ToResponse());
+        return Ok(SignPicture(user.ToResponse()));
     }
 
     /// <summary>Delete the logged-in user's account and end the session.</summary>

@@ -25,6 +25,7 @@ public class RaceDayDbContext(DbContextOptions<RaceDayDbContext> options) : DbCo
             e.Property(x => x.Email).HasMaxLength(255).IsRequired();
             e.HasIndex(x => x.Email).IsUnique().HasDatabaseName("UQ_Users_Email");
             e.Property(x => x.PasswordHash).HasMaxLength(255).IsRequired();
+            e.Property(x => x.ProfileImageUrl).HasMaxLength(2048);
             e.Property(x => x.Role).HasMaxLength(20).IsRequired();
         });
 
@@ -66,6 +67,7 @@ public class RaceDayDbContext(DbContextOptions<RaceDayDbContext> options) : DbCo
             e.Property(x => x.Name).HasMaxLength(150).IsRequired();
             e.Property(x => x.Location).HasMaxLength(200).IsRequired();
             e.Property(x => x.Description).HasMaxLength(1000);
+            e.Property(x => x.BannerImageUrl).HasMaxLength(2048);
             e.Property(x => x.DistanceKm).HasColumnName("DistanceKM").HasColumnType("decimal(6,2)");
             e.Property(x => x.EventType).HasMaxLength(20).IsRequired();
             e.Property(x => x.Status).HasMaxLength(20).IsRequired();

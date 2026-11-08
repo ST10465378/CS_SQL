@@ -35,6 +35,7 @@ CREATE TABLE dbo.Users (
     FullName        NVARCHAR(150)       NOT NULL,
     Email           NVARCHAR(255)       NOT NULL,
     PasswordHash    NVARCHAR(255)       NOT NULL,
+    ProfileImageUrl NVARCHAR(2048)      NULL,
     Role            NVARCHAR(20)        NOT NULL DEFAULT 'Participant',
     CreatedAt       DATETIME2           NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT PK_Users PRIMARY KEY (UserID),

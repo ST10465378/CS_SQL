@@ -25,6 +25,7 @@ public class User
     public string FullName { get; set; } = "";
     public string Email { get; set; } = "";
     public string PasswordHash { get; set; } = "";
+    public string? ProfileImageUrl { get; set; }
     public string Role { get; set; } = Roles.Participant;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public Organiser? Organiser { get; set; }
@@ -62,6 +63,7 @@ public class Event
     public decimal DistanceKm { get; set; }
     public string EventType { get; set; } = "run";
     public string Status { get; set; } = EventStatuses.Draft;
+    public string? BannerImageUrl { get; set; }
     public Organiser Organiser { get; set; } = null!;
     public List<Category> Categories { get; set; } = new();
 }

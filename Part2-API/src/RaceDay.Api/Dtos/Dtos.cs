@@ -38,7 +38,7 @@ public class UpdateProfileRequest
 }
 
 public record UserResponse(int UserId, string FullName, string Email, string Role, string? OrganisationName,
-    string? ContactPhone, DateOnly? DateOfBirth, string? EmergencyContact, DateTime CreatedAt);
+    string? ContactPhone, DateOnly? DateOfBirth, string? EmergencyContact, DateTime CreatedAt, string? ProfileImageUrl);
 
 public record LoginResponse(string Message, UserResponse User);
 
@@ -58,6 +58,7 @@ public class EventRequest
 
 public class EventResponse
 {
+    public string? BannerImageUrl { get; set; }
     public int EventId { get; set; }
     public int OrganiserId { get; set; }
     public string OrganisationName { get; set; } = "";
@@ -105,7 +106,7 @@ public static class Projections
     {
         EventId = e.EventId, OrganiserId = e.OrganiserId, OrganisationName = e.Organiser.OrganisationName,
         Name = e.Name, EventDate = e.EventDate, Location = e.Location, Description = e.Description,
-        DistanceKm = e.DistanceKm, EventType = e.EventType, Status = e.Status
+        DistanceKm = e.DistanceKm, EventType = e.EventType, Status = e.Status, BannerImageUrl = e.BannerImageUrl
     };
 
     public static readonly Expression<Func<Category, CategoryResponse>> CategoryDto = c =>
@@ -126,5 +127,5 @@ public static class UserMapper
 {
     public static UserResponse ToResponse(this User u) =>
         new(u.UserId, u.FullName, u.Email, u.Role, u.Organiser?.OrganisationName, u.Organiser?.ContactPhone,
-            u.Participant?.DateOfBirth, u.Participant?.EmergencyContact, u.CreatedAt);
+            u.Participant?.DateOfBirth, u.Participant?.EmergencyContact, u.CreatedAt, u.ProfileImageUrl);
 }

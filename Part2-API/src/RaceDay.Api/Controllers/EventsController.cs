@@ -4,13 +4,22 @@ using RaceDay.Api.Data;
 using RaceDay.Api.Dtos;
 using RaceDay.Api.Models;
 using RaceDay.Api.Security;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
 [Route("api/events")]
 [Tags("Events")]
-public class EventsController(RaceDayDbContext db) : ApiControllerBase
+public class EventsController(RaceDayDbContext db, BlobImageService blobs, IConfiguration config) : ApiControllerBase
 {
+    private string BannerContainer => config["AzureBlob:EventBannersContainer"] ?? "event-banners";
+    private EventResponse SignBanner(EventResponse dto)
+    {
+        if (!string.IsNullOrWhiteSpace(dto.BannerImageUrl))
+            dto.BannerImageUrl = blobs.GetReadUrl(dto.BannerImageUrl, BannerContainer);
+        return dto;
+    }
+
     private static string? NormaliseType(string t) =>
         EventTypes.All.FirstOrDefault(x => x == t.Trim().ToLowerInvariant());
 
@@ -27,7 +36,8 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
         if (!string.IsNullOrWhiteSpace(search)) q = q.Where(e => e.Name.Contains(search) || e.Location.Contains(search));
         if (!string.IsNullOrWhiteSpace(eventType)) { var t = eventType.Trim().ToLowerInvariant(); q = q.Where(e => e.EventType == t); }
         if (from.HasValue) q = q.Where(e => e.EventDate >= from.Value);
-        return Ok(await q.OrderBy(e => e.EventDate).Select(Projections.EventDto).ToListAsync());
+        var items = await q.OrderBy(e => e.EventDate).Select(Projections.EventDto).ToListAsync();
+        return Ok(items.Select(SignBanner).ToList());
     }
 
     /// <summary>List all events (any status) owned by the logged-in Organiser.</summary>
@@ -42,8 +52,9 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
     public async Task<IActionResult> GetMine()
     {
         var oid = CurrentProfileId;
-        return Ok(await db.Events.AsNoTracking().Where(e => e.OrganiserId == oid)
-            .OrderBy(e => e.EventDate).Select(Projections.EventDto).ToListAsync());
+        var items = await db.Events.AsNoTracking().Where(e => e.OrganiserId == oid)
+            .OrderBy(e => e.EventDate).Select(Projections.EventDto).ToListAsync();
+        return Ok(items.Select(SignBanner).ToList());
     }
 
     /// <summary>Get one event with its categories (public for published events; drafts only visible to the owning Organiser).</summary>
@@ -62,7 +73,7 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
             return Fail(404, "Event not found.");
 
         dto.Categories = await db.Categories.AsNoTracking().Where(c => c.EventId == id).Select(Projections.CategoryDto).ToListAsync();
-        return Ok(dto);
+        return Ok(SignBanner(dto));
     }
 
     /// <summary>Create an event owned by the logged-in Organiser.</summary>
@@ -93,7 +104,7 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
         await db.SaveChangesAsync();
 
         var dto = await db.Events.AsNoTracking().Where(e => e.EventId == ev.EventId).Select(Projections.EventDto).FirstAsync();
-        return CreatedAtAction(nameof(GetById), new { id = ev.EventId }, dto);
+        return CreatedAtAction(nameof(GetById), new { id = ev.EventId }, SignBanner(dto));
     }
 
     /// <summary>Update an event. Only the owning Organiser may do this.</summary>
@@ -124,7 +135,28 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
         ev.Description = req.Description; ev.DistanceKm = req.DistanceKm; ev.EventType = type; ev.Status = status;
         await db.SaveChangesAsync();
 
-        return Ok(await db.Events.AsNoTracking().Where(e => e.EventId == id).Select(Projections.EventDto).FirstAsync());
+        return Ok(SignBanner(await db.Events.AsNoTracking().Where(e => e.EventId == id).Select(Projections.EventDto).FirstAsync()));
+    }
+
+    /// <summary>Upload an event banner (JPG, PNG or WEBP, up to 5 MB).</summary>
+    [HttpPost("{id:int}/banner")]
+    [SessionAuthorize(Roles = Roles.Organiser)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(EventResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UploadBanner(int id, IFormFile file, CancellationToken ct)
+    {
+        var ev = await db.Events.FirstOrDefaultAsync(e => e.EventId == id, ct);
+        if (ev is null) return Fail(404, "Event not found.");
+        if (ev.OrganiserId != CurrentProfileId) return Fail(403, "You can only edit your own events.");
+        if (file is null) return Fail(400, "Please select an image.");
+        try
+        {
+            ev.BannerImageUrl = await blobs.Upload(file, BannerContainer, ct);
+            await db.SaveChangesAsync(ct);
+            var dto = await db.Events.AsNoTracking().Where(e => e.EventId == id).Select(Projections.EventDto).FirstAsync(ct);
+            return Ok(SignBanner(dto));
+        }
+        catch (ArgumentException ex) { return Fail(400, ex.Message); }
     }
 
     /// <summary>Delete an event. If it already has enrolments it is marked "cancelled" instead of being removed.</summary>
